@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://hdhhduehdwbdf.github.io/wzry-persona-quiz/sitemap.xml

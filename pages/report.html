@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>完整英雄画像 · 王者荣耀人物测试</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../css/app.css">
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#04060d">
+<meta name="description" content="峡谷八维得分、英雄原型解析与相处建议，一页看完你的完整英雄画像。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="王者荣耀人物测试">
+<meta property="og:title" content="完整英雄画像 · 王者荣耀人物测试">
+<meta property="og:description" content="峡谷八维得分、英雄原型解析与相处建议。">
+<meta property="og:image" content="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/assets/og-cover.png">
+<meta property="og:url" content="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/pages/report.html">
+<link rel="canonical" href="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/pages/report.html">
+<script src="../assets/pwa.js" defer></script>
+</head>
+<body class="arena-bg min-h-screen">
+<div class="relative mx-auto w-full max-w-[460px] min-h-screen overflow-hidden starfield px-5 pb-44">
+
+  <div class="flex items-center justify-between pt-7">
+    <span class="text-[12px] text-slate-400">你的英雄画像</span>
+    <button class="btn-ghost-gold px-4 py-2 text-[12px]" onclick="go('share.html')">生成分享卡 →</button>
+  </div>
+
+  <div id="report-body" class="mt-6"></div>
+</div>
+
+<div class="fixed bottom-0 left-1/2 z-50 w-full max-w-[460px] -translate-x-1/2 border-t border-white/10 bg-abyss-950/85 px-5 pb-[calc(14px+env(safe-area-inset-bottom))] pt-4 backdrop-blur-xl">
+  <div class="flex flex-wrap gap-2.5">
+    <button class="btn-ghost-gold flex-1 py-3.5 text-[15px]" onclick="go('gender.html')">重新测试</button>
+    <button class="btn-gold flex-1 py-3.5 text-[15px]" onclick="go('share.html')">分享卡片</button>
+  </div>
+</div>
+
+<script src="../js/core.js"></script>
+<script>
+ensureAnswers();
+var fig = Store.getFigure(Store.data.matchId) || Store.pool()[0];
+var pct = Store.data.matchPct || 88;
+var scores = Store.data.scores || Store.calcScores();
+var st = FIG_STYLE[fig.id] || { em: fig.name[0], a: '#E2B45C', s: 'rgba(226,180,92,0.14)' };
+var sorted = Store.topDims();
+var top1 = sorted[0], top2 = sorted[1], weak1 = sorted[7], weak2 = sorted[6];
+var DIMS_ALL = DIMS;
+
+function sec(title, inner) {
+  return '<section class="reveal glass mb-4 rounded-2xl p-5">' +
+    '<p class="mb-3 flex items-center gap-2 text-[14.5px] font-semibold text-gold-200">' +
+    '<span class="inline-block h-3.5 w-1 rounded bg-gold-500"></span>' + title + '</p>' + inner + '</section>';
+}
+
+function render() {
+  var dimRows = DIMS_ALL.map(function (d) {
+    var v = scores[d];
+    return '<div class="mb-2.5">' +
+      '<div class="mb-1 flex items-center justify-between text-[12px]"><span class="text-slate-300">' + d + '</span><span class="font-semibold text-gold-300">' + v + '</span></div>' +
+      '<div class="h-1.5 w-full overflow-hidden rounded-full bg-white/8"><div class="h-full rounded-full bg-gradient-to-r from-gold-600 to-gold-300" style="width:' + v + '%;box-shadow:0 0 10px rgba(226,180,92,.45)"></div></div>' +
+    '</div>';
+  }).join('');
+
+  document.getElementById('report-body').innerHTML =
+    '<div class="glass-strong rounded-3xl p-6 text-center rise-in">' +
+      '<div class="mx-auto mb-4 flex h-20 w-20 items-center justify-center sigil" style="border-color:' + st.a + '99">' +
+        '<span class="text-3xl font-bold" style="color:' + st.a + '">' + st.em + '</span></div>' +
+      '<p class="text-[11px] tracking-[0.3em] text-gold-500/80">你的王者荣耀本命英雄</p>' +
+      '<h1 class="mt-2 text-[38px] font-extrabold leading-none gold-text">' + fig.name + '</h1>' +
+      '<p class="mt-3 text-[12px] text-slate-400">' + fig.role + ' · ' + fig.camp + ' · ' + fig.tags.join(' / ') + '</p>' +
+      '<div class="my-4 gold-rule"></div>' +
+      '<p class="text-[13px] leading-relaxed text-slate-300">匹配度</p>' +
+      '<p id="pct-num" class="text-[52px] font-extrabold leading-none gold-text" data-target="' + pct + '">0%</p>' +
+      '<p class="mt-3 text-[13.5px] leading-relaxed text-jade-300">「' + fig.quote + '」</p>' +
+      '<p class="mt-3 text-[13px] text-slate-400">' + fig.opener + '</p>' +
+    '</div>' +
+
+    '<div class="glass mb-4 mt-4 rounded-2xl p-5 reveal" style="border-color:' + st.a + '44">' +
+      '<p class="mb-3 flex items-center gap-2 text-[14.5px] font-semibold" style="color:' + st.a + '">' +
+      '<span class="inline-block h-3.5 w-1 rounded" style="background:' + st.a + '"></span>英雄概括 · 三句话读你</p>' +
+      fig.summary3.map(function (s, i) {
+        return '<p class="mb-2 text-[13.5px] leading-relaxed text-slate-200">' +
+          '<span class="mr-2 inline-block h-5 w-5 rounded-full bg-gold-500 text-center text-[11px] font-bold leading-5 text-abyss-950">' + (i + 1) + '</span>' + s + '</p>';
+      }).join('') +
+    '</div>' +
+
+    sec('一 · 英雄匹配详情',
+      '<p class="text-[13.5px] leading-relaxed text-slate-200">' + fig.intro + '</p>' +
+      '<div class="my-3 gold-rule"></div>' +
+      '<p class="text-[12.5px] leading-relaxed text-slate-400">为什么是你：你在 <b class="text-gold-300">' + top1 + '</b> 与 <b class="text-gold-300">' + top2 + '</b> 两个维度上显著高于均值（' + scores[top1] + ' / ' + scores[top2] + ' 分），与' + fig.name + '的核心人格轴同构；而你的 <b class="text-gold-300">' + weak1 + '</b>（' + scores[weak1] + ' 分）也正是他的待补之处。</p>') +
+
+    sec('二 · 峡谷八维雷达图',
+      '<div class="text-center"><canvas id="radar"></canvas></div>' +
+      '<div class="my-3 gold-rule"></div>' + dimRows) +
+
+    sec('三 · 英雄自画像', '<p class="text-[13.5px] leading-relaxed text-slate-200">' + fig.self_portrait + '</p>') +
+
+    sec('四 · 共同底色拆解',
+      fig.base_color.map(function (b) {
+        return '<div class="border-b border-white/8 py-2.5 last:border-0">' +
+          '<p class="text-[13.5px] font-semibold text-gold-300">' + b.t + '</p>' +
+          '<p class="mt-1 text-[12.5px] leading-relaxed text-slate-400">' + b.d + '</p></div>';
+      }).join('')) +
+
+    sec('五 · 现实互动方式', '<p class="text-[13.5px] leading-relaxed text-slate-200">' + fig.interaction + '</p>') +
+
+    sec('六 · 盲点与风险提醒',
+      '<div class="mb-2.5 rounded-xl border border-gold-500/25 bg-gold-500/8 p-3.5">' +
+      '<p class="text-[12.5px] font-semibold text-gold-300">性格盲点</p>' +
+      '<p class="mt-1 text-[12.5px] leading-relaxed text-slate-300">' + fig.blind_spot + '</p></div>' +
+      '<div class="rounded-xl border border-flame-500/25 bg-flame-500/8 p-3.5">' +
+      '<p class="text-[12.5px] font-semibold text-flame-400">风险提醒</p>' +
+      '<p class="mt-1 text-[12.5px] leading-relaxed text-slate-300">' + fig.risk + '</p></div>') +
+
+    sec('七 · 成长建议',
+      '<p class="text-[13.5px] leading-relaxed text-slate-200">' + fig.suggestion + '</p>' +
+      '<p class="mt-3 text-[11.5px] leading-relaxed text-slate-500">你的待激活维度是「' + weak2 + '」（' + scores[weak2] + ' 分）与「' + weak1 + '」（' + scores[weak1] + ' 分）。' + fig.name + '的解法是：不硬补短板，而是把长板用到极致，让长板替短板挡风。</p>') +
+
+    '<div class="mt-5 text-center">' +
+      '<button class="btn-ghost-gold px-5 py-2.5 text-[12px]" onclick="markBad()" id="fb-btn">' +
+      (Store.data.feedback ? '已收到你的反馈，感谢校准 ✓' : '报告不准确？点此反馈') + '</button></div>' +
+    '<div class="h-6"></div>';
+
+  animatePct();
+  animateRadar();
+  revealOnScroll();
+}
+
+function animatePct() {
+  var el = document.getElementById('pct-num');
+  if (!el) return;
+  var target = parseInt(el.getAttribute('data-target'), 10) || 0;
+  var start = null, dur = 1100;
+  function step(ts) {
+    if (!start) start = ts;
+    var p = Math.min(1, (ts - start) / dur);
+    var eased = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(target * eased) + '%';
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function animateRadar() {
+  var canvas = document.getElementById('radar');
+  if (!canvas) return;
+  var size = Math.min(320, Math.floor(window.innerWidth - 90));
+  var start = null, dur = 900;
+  function step(ts) {
+    if (!start) start = ts;
+    var p = Math.min(1, (ts - start) / dur);
+    var eased = 1 - Math.pow(1 - p, 3);
+    var scaled = {};
+    DIMS_ALL.forEach(function (d) { scaled[d] = scores[d] * eased; });
+    drawRadar(canvas, size, scaled, fig.scores);
+    if (p < 1) requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+function revealOnScroll() {
+  var els = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(function (e) { e.style.opacity = '1'; });
+    return;
+  }
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) { en.target.classList.add('rise-in'); en.target.style.opacity = '1'; io.unobserve(en.target); }
+    });
+  }, { threshold: 0.12 });
+  els.forEach(function (e) { e.style.opacity = '0'; io.observe(e); });
+}
+
+function markBad() {
+  if (Store.data.feedback) { Toast.show('已收到反馈，感谢校准'); return; }
+  Store.data.feedback = true;
+  Store.save();
+  Toast.show('已记录反馈，数据将用于优化英雄画像库');
+  var b = document.getElementById('fb-btn');
+  if (b) b.textContent = '已收到你的反馈，感谢校准 ✓';
+}
+
+render();
+</script>
+</body>
+</html>

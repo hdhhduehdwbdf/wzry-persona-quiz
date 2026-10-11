@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "playwright-core": "^1.64.0",
+    "qrcode": "^1.5.4",
+    "tailwindcss": "^4.3.3"
+  },
+  "scripts": {
+    "build:css": "tailwindcss -i css/input.css -o css/app.css --minify",
+    "test": "node tests/tests.js",
+    "serve": "node _tools/serve.js"
+  },
+  "description": "王者荣耀人物测试 · 峡谷八维人格匹配"
+}

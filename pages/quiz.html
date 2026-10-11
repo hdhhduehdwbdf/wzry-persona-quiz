@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>正在测试 · 王者荣耀人物测试</title>
+<link rel="icon" type="image/svg+xml" href="../assets/favicon.svg">
+<link rel="stylesheet" href="../css/app.css">
+<link rel="manifest" href="../manifest.webmanifest">
+<meta name="theme-color" content="#04060d">
+<meta name="description" content="24 道峡谷情景题，逐题作答即可，无需注册，作答记录只保存在你自己的设备上。">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="王者荣耀人物测试">
+<meta property="og:title" content="正在测试 · 王者荣耀人物测试">
+<meta property="og:description" content="24 道峡谷情景题，逐题作答即可，无需注册。">
+<meta property="og:image" content="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/assets/og-cover.png">
+<meta property="og:url" content="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/pages/quiz.html">
+<link rel="canonical" href="https://hdhhduehdwbdf.github.io/wzry-persona-quiz/pages/quiz.html">
+<script src="../assets/pwa.js" defer></script>
+</head>
+<body class="arena-bg min-h-screen">
+<div class="relative mx-auto w-full max-w-[460px] min-h-screen overflow-hidden starfield px-5 pb-16">
+
+  <div class="flex items-center justify-between pt-7">
+    <button id="btn-back" class="btn-ghost-gold px-4 py-2 text-[12px] opacity-0 transition-opacity duration-200" onclick="goBack()">← 上一题</button>
+    <span class="text-[12px] text-slate-400" id="progress-label">第 1 题 / 共 24 题</span>
+  </div>
+
+  <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-white/8">
+    <div id="progress-bar" class="h-full rounded-full bg-gradient-to-r from-gold-600 via-gold-400 to-gold-200 transition-all duration-300" style="width:4%;box-shadow:0 0 12px rgba(226,180,92,.6)"></div>
+  </div>
+
+  <div id="quiz-body" class="mt-7 transition-all duration-200"></div>
+</div>
+
+<script src="../js/core.js"></script>
+<script>
+Store.load();
+if (Object.keys(Store.data.answers).length === 0) {
+  Store.data.stats.started = (Store.data.stats.started || 0) + 1;
+  Store.save();
+}
+var cur = 0, backCount = 0, locked = false;
+for (var i = 0; i < QUESTIONS.length; i++) {
+  if (Store.data.answers[i] === undefined) { cur = i; break; }
+}
+var LETTERS = ['A', 'B', 'C', 'D'];
+
+function render() {
+  var q = QUESTIONS[cur];
+  var picked = Store.data.answers[cur];
+  var pct = Math.round(((cur + 1) / QUESTIONS.length) * 100);
+  document.getElementById('progress-bar').style.width = Math.max(4, pct) + '%';
+  document.getElementById('progress-label').textContent = '第 ' + (cur + 1) + ' 题 / 共 ' + QUESTIONS.length + ' 题';
+  var canBack = cur > 0 && backCount < 3;
+  document.getElementById('btn-back').style.opacity = canBack ? '1' : '0';
+  document.getElementById('btn-back').style.pointerEvents = canBack ? 'auto' : 'none';
+
+  var html = '<div class="mb-3 flex items-center gap-2"><span class="chip-x">' + q.cat + '</span>' +
+    '<span class="text-[11px] text-slate-500">' + (cur + 1) + ' / ' + QUESTIONS.length + '</span></div>' +
+    '<h2 class="mb-6 text-[19px] font-semibold leading-relaxed text-slate-50">' + q.q + '</h2>' +
+    '<div class="space-y-3">' +
+    q.o.map(function (opt, i) {
+      var on = picked === i;
+      return '<button onclick="pick(' + i + ')" data-i="' + i + '" class="option-card flex w-full items-start gap-3 rounded-2xl px-4 py-4 text-left' + (on ? ' is-picked' : '') + '">' +
+        '<span class="mt-[1px] flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-colors ' +
+        (on ? 'bg-gold-500 text-abyss-950' : 'border border-white/15 text-slate-400') + '">' + LETTERS[i] + '</span>' +
+        '<span class="text-[14px] leading-relaxed text-slate-100">' + opt[0] + '</span></button>';
+    }).join('') + '</div>' +
+    '<p class="mt-5 text-center text-[11px] text-slate-500">点击选项自动进入下一题' +
+    (backCount >= 3 ? ' · 已达回退上限' : ' · 最多可回退 3 步') + '</p>';
+
+  var body = document.getElementById('quiz-body');
+  body.innerHTML = html;
+  body.classList.remove('opacity-0', 'translate-x-3');
+}
+
+function pick(i) {
+  if (locked) return;
+  locked = true;
+  backCount = 0;
+  Store.data.answers[cur] = i;
+  if (Store.data.backStack.indexOf(cur) === -1) Store.data.backStack.push(cur);
+  if (Store.data.backStack.length > 3) Store.data.backStack.shift();
+  Store.save();
+
+  var btn = document.querySelector('#quiz-body button[data-i="' + i + '"]');
+  if (btn) {
+    btn.classList.add('is-picked');
+    var letter = btn.querySelector('span');
+    if (letter) { letter.className = 'mt-[1px] flex h-6 w-6 shrink-0 items-center justify-center rounded-lg text-[11px] font-bold transition-colors bg-gold-500 text-abyss-950'; }
+  }
+  setTimeout(function () {
+    var body = document.getElementById('quiz-body');
+    body.classList.add('opacity-0', 'translate-x-3');
+    setTimeout(function () {
+      locked = false;
+      if (cur < QUESTIONS.length - 1) { cur++; render(); }
+      else { finish(); }
+    }, 170);
+  }, 240);
+}
+
+function goBack() {
+  if (!(cur > 0 && backCount < 3)) { Toast.show('最多只能回退 3 步哦'); return; }
+  delete Store.data.answers[cur];
+  Store.save();
+  cur--; backCount++;
+  render();
+}
+
+function finish() {
+  Store.computeMatch();
+  Toast.show('作答完成，正在生成你的英雄画像…');
+  setTimeout(function () { go('report.html'); }, 900);
+}
+render();
+</script>
+</body>
+</html>
