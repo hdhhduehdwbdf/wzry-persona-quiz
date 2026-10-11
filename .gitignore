@@ -5,3 +5,5 @@ _tools/
 .DS_Store
 Thumbs.db
 *.log
+_check/
+_tmp_patch.js
